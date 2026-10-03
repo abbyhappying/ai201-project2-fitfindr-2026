@@ -59,47 +59,64 @@
 
 ### `search_listings`
 
-- **What it does:**
-- **Inputs:** <!-- name and type each: `max_price` (float), not "a price" -->
-- **Returns:**
+- **What it does:**Finds listings that match the description keywords, filters them by optional size and price ceiling, and returns them ranked by keyword overlap.
+- **Inputs:**
+description (str)
+
+size (str | None)
+
+max_price (float | None)
+- **Returns:** list[dict], where each dict contains id, title, description, category, style_tags (list), size, condition, price (float), colors (list), brand (str or None), platform.
 - **When it has nothing:**
+Returns an empty list [] when nothing matches — it does not raise an exception.
 
 ### `suggest_outfit`
 
 - **What it does:**
+Asks the model for one or two outfits built around the new item. It uses the user's wardrobe pieces when they exist and general styling ideas when they don't.
 - **Inputs:**
+new_item (dict)  wardrobe (dict)
 - **Returns:**
+a non-empty str. With a populated wardrobe, it names specific pieces the user owns. With an empty one, it gives general ideas built on common basics and says so.
 - **When it has nothing:**
+When the wardrobe is empty, returns a general-advice string (e.g. "This is the piece on its own — pair it with basics") instead of failing.
 
 ### `create_fit_card`
 
 - **What it does:**
+Writes a short social-post-style caption about the find, based on the outfit suggestion and the item.
 - **Inputs:**
+outfit (str): the output of suggest_outfit.
+new_item (dict)
 - **Returns:**
+str, a fit card caption
 - **When it has nothing:**
-
+if outfit is empty or whitespace, it returns a descriptive message string ("No outfit suggestion provided, so no fit card was created.") without calling the model and without raising error.
 ---
 
 ## Planning Loop
 
-<!-- Your branch rule, stated as a rule — the condition AND both paths — plus
-     the file and function that holds it.
-
-     Like this:
-       "If search_listings returns an empty list, put a message in the session
-        and stop. Otherwise take the first result and go to suggest_outfit."
-        — agent.py::run_agent
-
-     The grader checks your code against what you claim here, so the file and
-     function have to be real. -->
 
 **Branch rule:**
+1. Call search_listings with the user's description, size, and price.
+2. If the result is empty: set session["error"] to a message that names what was searched and which filters were applied, and add a hint such as "try a higher price or a different size". Then stop and return the session. Don't call either model tool.
+3. Otherwise: take results[0], store it in session["item"], and call suggest_outfit(item, wardrobe).
 
 **Where it lives:** `agent.py::run_agent`
 
-**How the query is parsed:** <!-- regex, string splitting, or asking the model — say which -->
+**How the query is parsed:**
+The query is parsed with regular expressions. A price ceiling is extracted from phrases like "under $30", "below 30", or "max $30". A size is extracted from phrases like "size M" or "in size XL". Whatever remains, with those phrases removed, becomes the description passed to search_listings. If no price or size phrase is found, those arguments are None.
 
-**What moves through the session:** <!-- which fields, in what order -->
+**What moves through the session:**
+
+1. query: the raw user text, kept for the record and for error messages.
+2. description, size, max_price: the parsed values, so you can see what the parser actually extracted. This is the first place to look when search results seem wrong.
+3. results: the list returned by search_listings.
+4. item: results[0], the listing the rest of the run is built on.
+wardrobe: the wardrobe passed in, so the record shows which one was used.
+5. outfit: the string from suggest_outfit.
+6. fit_card: the string from create_fit_card.
+7. error: empty unless the loop stopped early, in which case it holds the user-facing message.
 
 ---
 
