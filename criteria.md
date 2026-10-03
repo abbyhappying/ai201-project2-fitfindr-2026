@@ -25,9 +25,7 @@ Given a query that matches at least one listing, the agent completes all three
 tool calls and returns a fit card — in at least 4 of 5 tries.
 
 **Why this target:**
-<!-- Why 4 of 5 and not 5 of 5? Something about your search, probably —
-     "my search is a plain keyword match and some phrasings will miss" is a
-     real answer. -->
+The last two tools call a model, and model output is non-deterministic. A single try can fail for reasons that aren't a bug in the loop — a transient rate limit, a truncated response, a phrasing the model fumbles. 4 of 5 catches a genuinely broken loop while tolerating one legitimate model hiccup.Demanding 5 of 5 would make the criterion flaky and force me to chase noise rather than fix real defects.
 
 ---
 
@@ -37,65 +35,37 @@ Given a query that matches no listings, the agent stops before calling
 `suggest_outfit` and returns a message naming what to change — 5 of 5 tries.
 
 **Why this target:**
-<!-- Why is 5 of 5 reasonable here when criterion 1 isn't? What's different
-     about this path? -->
+This branch is pure deterministic code — no model is involved. The same query always produces zero results, and the branch either fires or it doesn't. There is no legitimate reason for it to fail even once. If it fails 1 of 5, that's a real bug, not noise. So the target has to be 5 of 5.
 
 ---
 
 ## 3. Something about state
 
-<!-- YOU WRITE THIS ONE.
-
-     How would you know that the item your search found is the same item the
-     next tool received? Name something countable or observable.
-
-     This is the criterion people find hardest, because state failure doesn't
-     look like state failure — it looks like a tool problem. Something that
-     compares session["selected_item"] against what actually reached
-     suggest_outfit is the shape you're after. -->
-
-
+Given a query that matches at least one listing, the id of the item passed to suggest_outfit equals the id of session["selected_item"], as shown in the trace — 5 of 5 tries.
 
 **Why this target:**
-
+This is about state plumbing, not model output. run_agent picks results[0], stores it, and hands that same object to the next tool. That's ordinary Python assignment — it either happens correctly every time or the code is wrong. There's no source of legitimate variation here. If the ids diverge even once, the loop is passing the wrong item, which is exactly the failure this criterion exists to catch. So it must be 5 of 5.
 
 
 ---
 
 ## 4. Something about the fit card
 
-<!-- YOU WRITE THIS ONE.
-
-     The fit card calls a model, so the same input can produce different words
-     each time. That's not a bug — it's the nature of the tool. So what would
-     make it acceptable?
-
-     Think about what you'd actually be unhappy to see. A caption that never
-     mentions the price? Two different items producing the same opening
-     sentence? A card longer than a caption anyone would post? Any of those can
-     be turned into a number. -->
-
-
+Given a query that completes all three tools, the fit card mentions the selected item's title and its price — 5 of 5 tries
 
 **Why this target:**
-
+The fit card is model-generated, so the wording will differ between tries — requiring identical text would be both impossible and pointless. What must be stable is a small set of invariants: the card exists, it's a reasonable caption length, and it names the item and its price. Those are controllable through the system instruction, so they should hold every try. 5 of 5 on the invariants rejects empty, off-topic, or overlong cards while accepting the natural variation that makes the card feel human.
 
 
 ---
 
 ## 5. Your choice
 
-<!-- YOU WRITE THIS ONE TOO.
-
-     Pick something you actually care about getting right. Speed, the empty
-     wardrobe path, what happens when the model can't be reached, whether the
-     search respects a price ceiling — anything, as long as it names a number
-     or an observable outcome. -->
-
+ Given a query that matches at least one listing and an empty wardrobe, the agent still completes all three tools and returns a fit card — 5 of 5 tries.
 
 
 **Why this target:**
-
+An empty wardrobe is a fully predictable input, and suggest_outfit is specified to handle it by returning general advice rather than failing. The control flow here is deterministic — the same empty wardrobe should take the same path every time. There's no model-driven variance that could justify a miss. So 5 of 5 is appropriate: if even one try breaks, the empty-wardrobe path has a real hole, which is one of the failure modes this unit asks me to exercise.
 
 
 ---
