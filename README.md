@@ -100,7 +100,17 @@ if outfit is empty or whitespace, it returns a descriptive message string ("No o
 **Branch rule:**
 1. Call search_listings with the user's description, size, and price.
 2. If the result is empty: set session["error"] to a message that names what was searched and which filters were applied, and add a hint such as "try a higher price or a different size". Then stop and return the session. Don't call either model tool.
-3. Otherwise: take results[0], store it in session["item"], and call suggest_outfit(item, wardrobe).
+
+3. Otherwise:
+   - Store session["search_results"][0] in session["selected_item"].
+   - Call suggest_outfit(session["selected_item"], session["wardrobe"]),
+     reading the item back out of the session.
+   - Store the result in session["outfit_suggestion"].
+
+4. Call create_fit_card(session["outfit_suggestion"], session["selected_item"]),
+   store the result in session["fit_card"].
+
+5. Return the session.
 
 **Where it lives:** `agent.py::run_agent`
 
@@ -110,47 +120,63 @@ The query is parsed with regular expressions. A price ceiling is extracted from 
 **What moves through the session:**
 
 1. query: the raw user text, kept for the record and for error messages.
-2. description, size, max_price: the parsed values, so you can see what the parser actually extracted. This is the first place to look when search results seem wrong.
-3. results: the list returned by search_listings.
-4. item: results[0], the listing the rest of the run is built on.
-wardrobe: the wardrobe passed in, so the record shows which one was used.
-5. outfit: the string from suggest_outfit.
-6. fit_card: the string from create_fit_card.
-7. error: empty unless the loop stopped early, in which case it holds the user-facing message.
+2. parsed: extracted description, size, max_price: the parsed values, so you can see what the parser actually extracted. This is the first place to look when search results seem wrong.
+3. search_results: the list returned by search_listings.
+4. selected_item: search_results[0], the listing the rest of the run is built on.
+5. wardrobe: the wardrobe passed in, so the record shows which one was used.
+6. outfit_suggestion: the string from suggest_outfit.
+7. fit_card: the string from create_fit_card.
+8. error: empty unless the loop stopped early, in which case it holds the user-facing message.
 
 ---
 
 ## Sample Run
 
-<!-- Two things go here.
 
-     1. One FULL query and its output, pasted as text.
-     2. Your three per-tool terminal tests — the command and what it printed. -->
 
 **One full query**
 
 ```
-$ python app.py ask '...'
+$ python app.py ask 'vintage graphic tee under $30'
 
 ```
+Found:    Y2K Baby Tee — Butterfly Print — $18.0 on depop
+
+  Outfit:   **Outfit 1: Y2K Streetwear**
+Pair the baby tee with your **Baggy straight-leg jeans, dark wash** for a classic early 2000s proportion play—fitted on top and loose on the bottom. Layer the **Vintage black denim jacket** on top and finish with your **Chunky white sneakers** and **Black crossbody bag**.
+
+**Outfit 2: Casual Contrast**
+Tuck the tee into your **Wide-leg khaki trousers** to highlight the cropped fit and mix the pink and purple tones with earthy tan. Throw on the **Black cropped zip hoodie** open over it, and ground the look with your **Black combat boots**.
+
+  Fit card: Just scored this dreamy butterfly baby tee on depop for only eighteen bucks and I am obsessed withthe pink and purple print. I'm leaning into total Y2K streetwear today by pairing the fitted crop with baggy dark-wash jeans and chunky white sneakers. It gives me major early 2000s mall-rat energy in the best way possible. #y2kstyle #depopfinds
+
+0 model calls this session, 2 served from cache
 
 **The three tools, tested one at a time**
 
 ```
 $ python -c "from tools import search_listings; print(search_listings('graphic tee', max_price=30))"
 
-```
-
+```python -c "from tools import search_listings; print(search_listings('graphic tee', max_price=30))"tfindr-2026>
+[{'id': 'lst_002', 'title': 'Y2K Baby Tee — Butterfly Print', 'description': 'Super cute early 2000s baby tee with butterfly graphic. Fitted crop length. Tag says medium but fits like a small.', 'category': 'tops', 'style_tags': ['y2k', 'vintage', 'graphic tee', 'cottagecore'], 'size': 'S/M', 'condition': 'excellent', 'price': 18.0, 'colors': ['white', 'pink', 'purple'], 'brand': None, 'platform': 'depop'}, {'id': 'lst_006', 'title': 'Graphic Tee — 2003 Tour Bootleg Style', 'description': 'Vintage-style bootleg tee with faded graphic. Slightly boxyfit. 100% cotton, soft and worn-in.', 'category': 'tops', 'style_tags': ['graphic tee', 'vintage', 'grunge', 'streetwear', 'band tee'], 'size': 'L', 'condition': 'good', 'price': 24.0, 'colors': ['black'], 'brand': None, 'platform': 'depop'}, {'id': 'lst_033', 'title': 'Vintage Band Tee — Faded Grey', 'description': 'Faded grey band-style tee with distressed graphic. Crew neck. Fits boxy. Well-loved but no holes or major damage.', 'category': 'tops', 'style_tags': ['vintage', 'grunge', 'band tee', 'graphic tee', 'streetwear'], 'size': 'L', 'condition': 'fair', 'price': 19.0, 'colors': ['grey', 'charcoal'], 'brand': None, 'platform': 'depop'}, {'id': 'lst_015', 'title': 'Vintage Graphic Hoodie — Faded Black', 'description': 'Faded black pullover hoodie with barely-visible vintage graphic on the chest. Cozy interior. Some pilling but adds to the worn-in look.', 'category': 'tops', 'style_tags': ['vintage', 'grunge', 'graphic', 'streetwear'], 'size': 'L', 'condition': 'fair', 'price': 26.0, 'colors': ['black', 'charcoal'], 'brand': None, 'platform': 'depop'}, {'id': 'lst_017', 'title': 'Mesh Long-Sleeve Top — Black', 'description': 'Sheer black mesh long-sleeve. Great for layering under a graphic tee or over a bralette. Stretchy material, fits true to size.', 'category': 'tops', 'style_tags': ['y2k', 'grunge', 'goth', 'layering'], 'size': 'S/M', 'condition': 'excellent', 'price': 15.0, 'colors': ['black'], 'brand': None, 'platform': 'depop'}, {'id': 'lst_011', 'title': 'Low-Rise Cargo Pants — Khaki', 'description': 'Y2K era low-rise cargo pants. Lots of pockets. Khaki color, slightly distressed at the hems. Great for layering with a long tee.', 'category': 'bottoms', 'style_tags': ['y2k', 'cargo', '2000s', 'streetwear'], 'size': 'W29', 'condition':'fair', 'price': 27.0, 'colors': ['khaki', 'tan'], 'brand': None, 'platform': 'poshmark'}, {'id': 'lst_012', 'title': 'Oversized Crewneck Sweatshirt — Vintage Navy', 'description': 'Perfectly faded navy crewneck. Genuinely vintage — not manufactured distressed. Ribbed cuffs and hem. No graphics, clean.', 'category': 'tops', 'style_tags': ['vintage', 'basics', 'oversized', 'classic'], 'size': 'XL (fits oversized)', 'condition': 'good', 'price': 20.0, 'colors': ['navy'], 'brand': None, 'platform': 'thredUp'}]
 ```
 $ python -c "from tools import suggest_outfit; ..."
 
 ```
+python -c "from tools import suggest_outfit; from utils.data_loader import get_example_wardrobe, load_listings; print(suggest_outfit(load_listings()[0], get_example_wardrobe()))"
 
+**Outfit 1: Casual Streetwear**
+Pair the vintage Levi's 501s with the white ribbed tank top tucked in, layered under the black cropped zip hoodie. Finish with the chunky white sneakers and the black crossbody bag for an effortless, classic look that highlights the medium wash.
+
+**Outfit 2: Cozy Grunge**
+Wear the vintage Levi's 501s with the oversized grey crewneck sweatshirt draped loosely over top. Add the black combat boots and the brown leather belt to contrast the grey and blue tones with some rugged texture.
 ```
 $ python -c "from tools import create_fit_card; ..."
 
 ```
+python -c "from tools import create_fit_card; from utils.data_loader import load_listings; print(create_fit_card('jeans and white sneakers', load_listings()[0]))"
 
+Scored these vintage Levi’s 501s on Depop for just $38 and they fit like an absolute dream. I’m styling them with crisp white sneakers for that effortlessly cool, casual streetwear vibe. So stoked on this wash! #VintageDenim #DepopFinds
 ---
 
 ## How I Used AI

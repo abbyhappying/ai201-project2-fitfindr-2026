@@ -13,6 +13,8 @@ Build and test your three tools in `tools.py` first. Then come here.
     python agent.py          runs both example paths below
 """
 
+import re
+
 import config
 import trace
 from tools import search_listings, suggest_outfit, create_fit_card
@@ -105,11 +107,118 @@ def run_agent(query: str, wardrobe: dict) -> dict:
       • A handler for ModelUnavailable, so a bad key produces a message rather
         than a stack trace. The import is already at the top of this file.
     """
+    # 1. Start a session.
     session = new_session(query, wardrobe)
 
-    # TODO: delete these two lines and build the loop.
-    session["error"] = "The planning loop isn't built yet — see the TODO in agent.py."
+    # 2. Count each step and check the stop condition before running it.
+    count = 0
+
+    # 3. Parse the query.
+    count += 1
+    trace.check_iterations(count)
+    description, size, max_price = parse_query(query)
+    session["parsed"] = {
+        "description": description,
+        "size": size,
+        "max_price": max_price,
+    }
+
+    # 4. Search.
+    count += 1
+    trace.check_iterations(count)
+    results = search_listings(description, size, max_price)
+    session["search_results"] = results
+
+    # THE BRANCH: nothing came back, so stop before either model tool runs.
+    if not results:
+        session["error"] = _no_results_message(description, size, max_price)
+        return session
+
+    # 5. Choose an item. Search returns best match first.
+    session["selected_item"] = results[0]
+
+    # print("BEFORE suggest_outfit, selected_item id:",
+    #   session["selected_item"]["id"])
+
+    # 6. Suggest an outfit.
+    count += 1
+    trace.check_iterations(count)
+    session["outfit_suggestion"] = suggest_outfit(
+        session["selected_item"], session["wardrobe"]
+    )
+    # print(session["search_results"][0]["id"])
+
+    # 7. Write the fit card.
+    count += 1
+    trace.check_iterations(count)
+    session["fit_card"] = create_fit_card(
+        session["outfit_suggestion"], session["selected_item"]
+    )
+
+    # 8. Return the session.
     return session
+
+
+# ── query parsing ─────────────────────────────────────────────────────────────
+
+# "under $30", "below 30", "max $30", "less than $30", "up to $30"
+_PRICE_BEFORE = re.compile(
+    r"\b(?:under|below|max|less than|up to)\s*\$?\s*(\d+(?:\.\d+)?)", re.I
+)
+# "$30 or less", "$30 max"
+_PRICE_AFTER = re.compile(r"\$\s*(\d+(?:\.\d+)?)\s*(?:or less|max)\b", re.I)
+
+# "size M", "in size XL", "size S/M", "size US 8.5", "size W30 L30"
+_SIZE = re.compile(
+    r"\b(?:in\s+)?size\s+"
+    r"(US\s*\d+(?:\.\d+)?|W\d+(?:\s*L\d+)?|[A-Za-z]{1,3}(?:/[A-Za-z]{1,3})?)\b",
+    re.I,
+)
+
+
+def parse_query(query: str) -> tuple[str, str | None, float | None]:
+    """
+    Pull a price ceiling and a size out of the query with regex. Whatever is
+    left, with those phrases removed, is the description.
+
+    Returns (description, size, max_price). size and max_price are None when
+    the query doesn't mention them.
+    """
+    text = query or ""
+
+    max_price = None
+    match = _PRICE_BEFORE.search(text) or _PRICE_AFTER.search(text)
+    if match:
+        max_price = float(match.group(1))
+        text = text.replace(match.group(0), " ")
+
+    size = None
+    match = _SIZE.search(text)
+    if match:
+        size = match.group(1)
+        text = text.replace(match.group(0), " ")
+
+    description = re.sub(r"[,\s]+", " ", text).strip(" ,.")
+    return description, size, max_price
+
+
+def _no_results_message(
+    description: str, size: str | None, max_price: float | None
+) -> str:
+    """Say what was searched, which filters were on, and what to change."""
+    message = f'No listings matched "{description}"'
+    if size:
+        message += f" in size {size}"
+    if max_price is not None:
+        message += f" under ${max_price:g}"
+
+    hints = []
+    if max_price is not None:
+        hints.append("raise your price limit")
+    if size:
+        hints.append("try a different size or leave the size out")
+    hints.append("use fewer or broader words (e.g. 'tee' instead of 'designer graphic tee')")
+    return f"{message}. Try: {'; '.join(hints)}."
 
 
 # ── running it directly ───────────────────────────────────────────────────────
