@@ -191,14 +191,30 @@ Scored these vintage Levi’s 501s on Depop for just $38 and they fit like an ab
 **Moment 1**
 
 - *What I asked for:*
+  I gave the AI my `search_listings` Tool Inventory spec
+  and asked it to implement the size filter.
 - *What came back:*
+   It wrote a plain substring test:
+  `if size.lower() in listing["size"].lower()`.
 - *What I changed:*
+  That matches `"s"` inside `"us 9"` and `"l"` inside
+  `"xl"` — the exact trap the docstring warns about, and it would have made
+  Criterion 1 flaky. I replaced it with token-based matching: split both
+  sizes into whole tokens (`_size_tokens`) and check that the wanted tokens
+  are a subset of the listing's tokens. Now `"M"` matches `"S/M"` but not
+  `"US 9"`.
 
 **Moment 2**
 
 - *What I asked for:*
+ I asked the AI how `run_agent` should handle the case
+  where `search_listings` returns nothing.
 - *What came back:*
+   It suggested returning `None` and letting the loop check
+  `if not results`.
 - *What I changed:*
+  `None` and `[]` are both falsy, so the branch would still
+  fire, but `None` breaks the spec — my Tool Inventory says "returns an empty list, not None". It also breaks any downstream `len(...)`. I kept `[]` and made the error message name the search and the filters: "No listings matched 'designer ballgown' with size XXS under $5. Try a higher price or a different size." That satisfies the Milestone 2 rule that "No results" is not an acceptable message.
 
 <!-- ═══════════════════════ UNIT 4 — THE TEST ═══════════════════════
 
