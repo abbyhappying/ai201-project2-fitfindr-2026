@@ -79,7 +79,7 @@ new_item (dict)  wardrobe (dict)
 - **Returns:**
 a non-empty str. With a populated wardrobe, it names specific pieces the user owns. With an empty one, it gives general ideas built on common basics and says so.
 - **When it has nothing:**
-When the wardrobe is empty, returns a general-advice string (e.g. "This is the piece on its own — pair it with basics") instead of failing.
+When wardrobe["items"] is empty, suggest_outfit still calls the model, asking for general styling ideas built around the item using common basics. The returned text opens with a short sentence noting that the wardrobe is empty, then gives one or two general outfits. It never raises and never returns an empty string.
 
 ### `create_fit_card`
 
