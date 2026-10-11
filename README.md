@@ -20,22 +20,7 @@
 
 ---
 
-<!-- ─────────────────────────────────────────────────────────────────────────
-     HOW TO USE THIS FILE
 
-     This is your submission. Fill each section in as you finish the milestone
-     it belongs to — don't leave it all to the end.
-
-     Unit 3 asks for the first five sections. Unit 4 adds the five below them.
-     Leave the unit 4 sections alone until then; they're here so you know
-     what's coming.
-
-     Everything is pasted as TEXT. No screenshots, no images, no video links.
-     A typed block of output gets full credit; a picture of the same output
-     gets none.
-     ───────────────────────────────────────────────────────────────────────── -->
-
-<!-- ═══════════════════════ UNIT 3 — THE BUILD ═══════════════════════ -->
 
 ## What This Does
 
@@ -47,15 +32,6 @@
 
 ## Tool Inventory
 
-<!-- Four lines per tool. This is worth 2 points and it's the single most
-     common place students lose them.
-
-     "Returns a list" earns NOTHING. The description has to say what is IN
-     the list.
-
-     The empty case isn't optional either — it's the thing your loop branches
-     on, and if you don't decide it here you'll discover it as a crash in
-     Milestone 5. -->
 
 ### `search_listings`
 
@@ -278,33 +254,112 @@ that produced it:
 | 5 |  |  |  |  |
 
 **Diagnoses**
-
-
-
 ---
+** Empty search **
+```
+python app.py ask 'designer ballgown size XXS under $5'
+
+  No listings matched "designer ballgown" in size XXS under $5. Try: raise your price limit; try a different size or leave the size out; use fewer or broader words (e.g. 'tee' instead of 'designer graphic tee').
+
+0 model calls this session
+```
+** Empty wardrobe **
+```
+python app.py ask 'vintage graphic tee under $30' --empty-wardrobe
+(running with an empty wardrobe)
+
+  Found:    Y2K Baby Tee — Butterfly Print — $18.0 on depop
+
+  Outfit:   Since your wardrobe is a blank slate, here are a couple of easy outfit ideas using closet basics.
+
+**Outfit 1: Casual Y2K Streetwear**
+Pair the baby tee with classic light-wash blue denim jeans and white canvas sneakers. The fitted crop top balances the relaxed denim, and white sneakers keep it fresh and effortless.
+
+**Outfit 2: Sweet & Sporty**
+Wear it tucked into a plain black tennis skirt with comfortable low-top sneakers and a simple canvas tote bag. The black skirt makes the pink and purple butterfly graphic pop while keeping the look cute and wearable.
+
+  Fit card: Obsessed with this little pink and purple butterfly tee I just scored on Depop for only $18! I threw it on with a black tennis skirt and my favorite tote for the cutest sweet-and-sporty vibe. It’s seriously giving all the early 2000s nostalgia. #y2kstyle #depopfinds
+
+2 model calls this session, 470 prompt + 195 output tokens
+```
+** Model unavailable **
+```
+python app.py ask 'platform sneakers size 8'
+
+  Found a match (Platform Sneakers — White Chunky Sole), but the model couldn't be reached. The model rejected your API key. Check GEMINI_API_KEY in your .env file, or create a fresh key at aistudio.google.com.
+
+1 model calls this session
+```
 
 ## Loop Trace
 
-<!-- One full run, printed step by step, with the MCP call visible in it.
-
-     `python app.py ask '...' --trace` once you've added the trace.step()
-     calls in Milestone 2.
-
-     Worth pasting BOTH the happy path and the empty-search path. The empty
-     one should be visibly shorter, because it stops. If your two traces are
-     the same length, your branch isn't working — and this is the fastest way
-     anyone will ever find that out. -->
 
 **Happy path**
 
 ```
+ python app.py ask 'vintage graphic tee under $30' --trace PS C:\CodePath\AI 102\ai201-project2-fitfindr-2026>
+[1] parse_query
+      in:  vintage graphic tee under $30
+      out: description='vintage graphic tee', size=None, max_price=30.0
+[2] search_listings (via MCP)
+      in:  description='vintage graphic tee', size=None, max_price=30.0
+      out: 10 items: Y2K Baby Tee — Butterfly Print, Graphic Tee — 2003 Tour Bootleg Style, Vintage Band Tee — Faded Grey … +7 more
+[3] select_item
+      in:  10 results
+      out: Y2K Baby Tee — Butterfly Print ($18.0, depop)
+      →    best match first
+[4] suggest_outfit
+      in:  new_item='Y2K Baby Tee — Butterfly Print', wardrobe=10 items
+      out: **Outfit 1: Y2K Streetwear** Pair the baby tee with your **Baggy straight-leg jeans, dark wash** fora classic…
+[5] create_fit_card
+      in:  outfit=573 chars, new_item='Y2K Baby Tee — Butterfly Print'
+      out: Just scored this dreamy butterfly baby tee on depop for only eighteen bucks and I am obsessed with the pink an…
 
+  Found:    Y2K Baby Tee — Butterfly Print — $18.0 on depop
+
+  Outfit:   **Outfit 1: Y2K Streetwear**
+Pair the baby tee with your **Baggy straight-leg jeans, dark wash** for a classic early 2000s proportion play—fitted on top and loose on the bottom. Layer the **Vintage black denim jacket** on top and finish with your **Chunky white sneakers** and **Black crossbody bag**.
+
+**Outfit 2: Casual Contrast**
+Tuck the tee into your **Wide-leg khaki trousers** to highlight the cropped fit and mix the pink and purple tones with earthy tan. Throw on the **Black cropped zip hoodie** open over it, and ground the look with your **Black combat boots**.
+
+  Fit card: Just scored this dreamy butterfly baby tee on depop for only eighteen bucks and I am obsessed with the pink and purple print. I'm leaning into total Y2K streetwear today by pairing the fitted crop with baggy dark-wash jeans and chunky white sneakers. It gives me major early 2000s mall-rat energy in the best way possible. #y2kstyle #depopfinds
+
+0 model calls this session, 2 served from cache
 ```
 
 **Empty search**
 
 ```
+python app.py ask 'platform sneakers size 8' --trace
+[1] parse_query
+      in:  platform sneakers size 8
+      out: description='platform sneakers size 8', size=None, max_price=None
+[2] search_listings (via MCP)
+      in:  description='platform sneakers size 8', size=None, max_price=None
+      out: 5 items: Platform Sneakers — White Chunky Sole, Platform Mary Janes — Black Patent, Low-Top Canvas Sneakers — Off-White … +2 more
+[3] select_item
+      in:  5 results
+      out: Platform Sneakers — White Chunky Sole ($48.0, poshmark)
+      →    best match first
+[4] suggest_outfit
+      in:  new_item='Platform Sneakers — White Chunky Sole', wardrobe=10 items
+      out: **Outfit 1: Y2K Streetwear** Pair the platform sneakers with your **Baggy straight-leg jeans, dark wash** and …
+[5] create_fit_card
+      in:  outfit=535 chars, new_item='Platform Sneakers — White Chunky Sole'
+      out: Obsessed with these chunky white platform sneakers I just scored on Poshmark for $48. They totally make the ba…
 
+  Found:    Platform Sneakers — White Chunky Sole — $48.0 on poshmark
+
+  Outfit:   **Outfit 1: Y2K Streetwear**
+Pair the platform sneakers with your **Baggy straight-leg jeans, dark wash** and the **Black cropped zip hoodie**. The chunky Velcro shoes match the 2000s streetwear vibe of the low-hip jeans and the cropped fit of the hoodie.
+
+**Outfit 2: Casual Minimal**
+Style the sneakers with your **Wide-leg khaki trousers** and the **White ribbed tank top**, layered under the **Vintage black denim jacket**. The crisp white shoes tie into the tank top, while the platform adds a cool edge to the tailored trousers.
+
+  Fit card: Obsessed with these chunky white platform sneakers I just scored on Poshmark for $48. They totally make the baggy jeans and cropped hoodie look for that ultimate 2000s streetwear vibe. Can't wait to style them with wide-leg trousers next! #thriftfinds #y2kstyle
+
+2 model calls this session, 676 prompt + 192 output tokens
 ```
 
 **On the MCP move:** <!-- what changed in your code, and whether anything
