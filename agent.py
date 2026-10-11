@@ -158,7 +158,7 @@ def run_agent(query: str, wardrobe: dict) -> dict:
         "select_item",
         inputs=f"{len(results)} results",
         returned=session["selected_item"],
-        note="best match first",
+        note=f"id={session['selected_item']['id']}, best match first",
     )
 
     # print("BEFORE suggest_outfit, selected_item id:",
@@ -176,7 +176,8 @@ def run_agent(query: str, wardrobe: dict) -> dict:
         trace.step(
             "suggest_outfit",
             inputs=(
-                f"new_item={session['selected_item']['title']!r}, "
+                f"new_item={session['selected_item']['title']!r} "
+                f"(id={session['selected_item']['id']}), "
                 f"wardrobe={len(session['wardrobe']['items'])} items"
             ),
             returned=session["outfit_suggestion"],

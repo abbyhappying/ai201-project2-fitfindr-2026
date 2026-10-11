@@ -212,19 +212,65 @@ Scored these vintage Levi’s 501s on Depop for just $38 and they fit like an ab
 
 | Criterion | Target | Try 1 | Try 2 | Try 3 | Try 4 | Try 5 | Verdict |
 |---|---|---|---|---|---|---|---|
-| 1.  |  |  |  |  |  |  |  |
-| 2.  |  |  |  |  |  |  |  |
-| 3.  |  |  |  |  |  |  |  |
-| 4.  |  |  |  |  |  |  |  |
-| 5.  |  |  |  |  |  |  |  |
+| 1.Full three-tool run returns a fit card  | 4 of 5 | PASS |  PASS|  PASS|  PASS|  PASS| MET (5/5) |
+| 2. Impossible query stops before the second tool | 5 of 5 | PASS |  PASS|  PASS|  PASS|  PASS| MET (5/5) |
+| 3. selected_item id == suggest_outfit input id | 5 of 5 | PASS |  PASS|  PASS|  PASS|  PASS| MET (5/5) |
+| 4. Fit card mentions title and price |  5 of 5 | PASS |  PASS|  PASS|  PASS|  PASS| MET (5/5) |
+| 5.  Empty wardrobe still completes|  5 of 5 | PASS |  PASS|  PASS|  PASS|  PASS| MET (5/5) |
 
 **Real output from one try**, pasted as text, naming the file and function
 that produced it:
 
 ```
+Criterion 1：Full three-tool run returns a fit card
+--From results/run_2026-10-10_2308_before.md, scenario happy path, produced by run_agent (agent.py) calling search_listings, suggest_outfit, and create_fit_card (tools.py):
+--Output:
+[5] create_fit_card
+      in:  outfit=548 chars, new_item='Y2K Baby Tee — Butterfly Print'
+      out: Just scored this butterfly print baby tee on depop for $18 and I am obsessed with the pastel colorway...
+  try 1: completed — fit card 312 chars
 
 ```
+Criterion 2：Impossible query stops before the second tool
+--From results/run_2026-10-10_2308_before.md, scenario empty search, produced by the branch in run_agent (agent.py):
+--Output:
+[2] search_listings (via MCP)
+      in:  description='designer ballgown', size='XXS', max_price=5.0
+      out: [] (empty)
+      →    branch: empty, stopping before the model tools
+  try 1: stopped early — No listings matched "designer ballgown" in size XXS under $5
+```
+```
+Criterion 3：State consistency:selected_item id == suggest_outfit input id
 
+From results/run_2026-10-10_2308_before.md, scenario state check, produced by trace.step() calls in run_agent (agent.py)
+--Output:
+[3] select_item
+      in:  4 results
+      out: 90s Track Jacket — Navy/White Stripe ($45.0, poshmark)
+      →    id=lst_004, best match first
+[4] suggest_outfit
+      in:  new_item='90s Track Jacket — Navy/White Stripe' (id=lst_004), wardrobe=10 items
+
+```
+```
+Criterion 4：Fit card mentions title and price
+--From results/run_2026-10-10_2308_before.md, scenario fit card, produced by create_fit_card (tools.py).
+--Output:
+[5] create_fit_card
+      in:  outfit=539 chars, new_item='Y2K Baby Tee — Butterfly Print'
+      out: Just scored this pastel butterfly baby tee on Depop for only eighteen bucks and I am obsessed. It’s giving tot…
+
+```
+```
+Criterion 5：Empty wardrobe still completes
+From results/run_2026-10-10_2308_before.md, scenario empty wardrobe, produced by suggest_outfit (tools.py) with an empty wardrob.
+--Output:
+[4] suggest_outfit
+      in:  new_item='Platform Sneakers — White Chunky Sole' (id=lst_019), wardrobe=0 items
+      out: Since I don't know what's in your closet yet, here are two easy ideas built around common basics!  **Outfit 1:...
+  try 1: completed — fit card 266 chars
+```
 ---
 
 ## Verdicts and Diagnoses
@@ -362,10 +408,10 @@ Style the sneakers with your **Wide-leg khaki trousers** and the **White ribbed 
 2 model calls this session, 676 prompt + 192 output tokens
 ```
 
-**On the MCP move:** <!-- what changed in your code, and whether anything
-behaved differently afterwards. If the rewire didn't work, say exactly where it
-broke — the error text and the last thing that worked. That earns the point in
-full. -->
+**On the MCP move:**
+```
+I wrapped search_listings in mcp_server.py with @mcp.tool(), registered it with the same name and typed inputs as my Tool Inventory. In run_agent() I replaced search_listings(description, size, max_price) with call_tool("search_listings", {...}). The call shape changed but the return value did not — still a list[dict] with the same fields. python mcp_client.py confirmed the tool was listed. One full query ran end to end with no difference in output.
+```
 
 
 
