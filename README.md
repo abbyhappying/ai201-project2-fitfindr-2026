@@ -61,12 +61,12 @@
 
 - **What it does:**Finds listings that match the description keywords, filters them by optional size and price ceiling, and returns them ranked by keyword overlap.
 - **Inputs:**
-description (str)
+description (str): keywords describing the item, e.g. "vintage graphic tee".
 
-size (str | None)
+size (str | None): a size label, matched case-insensitively on whole tokens — "M" matches "S/M", but "S" does not match "US 9" and "L" does not match "XL". None skips size filtering.
 
-max_price (float | None)
-- **Returns:** list[dict], where each dict contains id, title, description, category, style_tags (list), size, condition, price (float), colors (list), brand (str or None), platform.
+max_price (float | None): price ceiling in US dollars, inclusive. None skips price filtering.
+- **Returns:** up to 10 results (config.SEARCH_RESULT_LIMIT), best match first, as a list[dict], where each dict contains id, title, description, category, style_tags (list), size, condition, price (float), colors (list), brand (str or None), platform.
 - **When it has nothing:**
 Returns an empty list [] when nothing matches — it does not raise an exception.
 

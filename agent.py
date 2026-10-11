@@ -17,7 +17,8 @@ import re
 
 import config
 import trace
-from tools import search_listings, suggest_outfit, create_fit_card
+from tools import suggest_outfit, create_fit_card
+from mcp_client import call_tool
 from generate import ModelUnavailable
 
 
@@ -126,7 +127,11 @@ def run_agent(query: str, wardrobe: dict) -> dict:
     # 4. Search.
     count += 1
     trace.check_iterations(count)
-    results = search_listings(description, size, max_price)
+    results = call_tool("search_listings", {
+        "description": description,
+        "size": size,
+        "max_price": max_price,
+    })
     session["search_results"] = results
 
     # THE BRANCH: nothing came back, so stop before either model tool runs.
