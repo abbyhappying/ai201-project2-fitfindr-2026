@@ -449,23 +449,24 @@ I wrapped search_listings in mcp_server.py with @mcp.tool(), registered it with 
      `python run_eval.py --label after` -->
 
 **What I changed:**
+I rewrote one prompt, _FIT_CARD_SYSTEM in tools.py, which is the system prompt for create_fit_card. I removed "not a product description" and the loose "Mention the item, its price…". In their place are two explicit rules: use the item's name exactly as written on the Item line, word for word, and write the price exactly as written on the Price line, in digits with the $ sign.
 
 **Which failure it was meant to fix:**
+Criterion 4, "Fit card mentions the item's title and price," was MISSED at 0/5 in the before run. The price appeared every time, but every card paraphrased the title (Denim Jacket — Light Wash, Cropped became "vintage Wrangler cropped denim jacket"). My diagnosis was that the old prompt told the model to write "not a product description" and never asked it to keep the title, so rewriting the title was the model following its instructions. The same prompt also let 2 of 5 happy-path cards write "eighteen bucks" instead of $18, so the price was at risk for the same reason.
 
 ### Run Log — After
 
 | Criterion | Target | Try 1 | Try 2 | Try 3 | Try 4 | Try 5 | Verdict |
 |---|---|---|---|---|---|---|---|
-| 1.  |  |  |  |  |  |  |  |
-| 2.  |  |  |  |  |  |  |  |
-| 3.  |  |  |  |  |  |  |  |
-| 4.  |  |  |  |  |  |  |  |
-| 5.  |  |  |  |  |  |  |  |
 
+| 1.Full three-tool run returns a fit card  | 4 of 5 | PASS |  PASS|  PASS|  PASS|  PASS| MET (5/5) |
+| 2. Impossible query stops before the second tool | 5 of 5 | PASS |  PASS|  PASS|  PASS|  PASS| MET (5/5) |
+| 3. selected_item id == suggest_outfit input id | 5 of 5 | PASS |  PASS|  PASS|  PASS|  PASS| MET (5/5) |
+| 4. Fit card mentions title and price |  5 of 5 | PASS |  FAIL|  PASS|  FAIL|  PASS| MISSED (3/5) |
+| 5.  Empty wardrobe still completes|  5 of 5 | PASS |  PASS|  PASS|  PASS|  PASS| MET (5/5) |
 **Did it help, and how do I know:**
 
-<!-- If it made things worse, say that. Honestly reported, that earns full
-     credit and is more interesting than one that worked. -->
+The prompt rewrite helped but didn't meet the target: criterion 4 went from 0/5 to 3/5 because the model now copies the exact title most of the time, but in 2 of 5 tries it still used the brand "Wrangler" from the outfit text instead, so a prompt alone can't guarantee 5/5 without a check in code.
 
 
 

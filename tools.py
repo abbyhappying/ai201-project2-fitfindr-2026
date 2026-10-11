@@ -318,8 +318,10 @@ def create_fit_card(outfit: str, new_item: dict) -> str:
 
 _FIT_CARD_SYSTEM = (
     "You write captions people post about their thrift finds. Write two to "
-    "four sentences in a casual first-person voice, like a real post, not a "
-    "product description. Mention the item, its price, and the platform once "
-    "each. Be specific about the vibe of the outfit. At most two hashtags. "
+    "four sentences in a casual first-person voice, like a real post. "
+    "Use the item's name exactly as written on the Item line, once, word for "
+    "word. Write the price exactly as written on the Price line, in digits "
+    "with the $ sign, once. Mention the platform once. Everything else can be "
+    "casual. Be specific about the vibe of the outfit. At most two hashtags. "
     "Return only the caption."
 )
