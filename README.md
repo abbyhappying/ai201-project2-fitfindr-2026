@@ -132,14 +132,11 @@ Tuck the tee into your **Wide-leg khaki trousers** to highlight the cropped fit 
 
 ```
 $ python -c "from tools import search_listings; print(search_listings('graphic tee', max_price=30))"
-
-```python -c "from tools import search_listings; print(search_listings('graphic tee', max_price=30))"tfindr-2026>
 [{'id': 'lst_002', 'title': 'Y2K Baby Tee — Butterfly Print', 'description': 'Super cute early 2000s baby tee with butterfly graphic. Fitted crop length. Tag says medium but fits like a small.', 'category': 'tops', 'style_tags': ['y2k', 'vintage', 'graphic tee', 'cottagecore'], 'size': 'S/M', 'condition': 'excellent', 'price': 18.0, 'colors': ['white', 'pink', 'purple'], 'brand': None, 'platform': 'depop'}, {'id': 'lst_006', 'title': 'Graphic Tee — 2003 Tour Bootleg Style', 'description': 'Vintage-style bootleg tee with faded graphic. Slightly boxyfit. 100% cotton, soft and worn-in.', 'category': 'tops', 'style_tags': ['graphic tee', 'vintage', 'grunge', 'streetwear', 'band tee'], 'size': 'L', 'condition': 'good', 'price': 24.0, 'colors': ['black'], 'brand': None, 'platform': 'depop'}, {'id': 'lst_033', 'title': 'Vintage Band Tee — Faded Grey', 'description': 'Faded grey band-style tee with distressed graphic. Crew neck. Fits boxy. Well-loved but no holes or major damage.', 'category': 'tops', 'style_tags': ['vintage', 'grunge', 'band tee', 'graphic tee', 'streetwear'], 'size': 'L', 'condition': 'fair', 'price': 19.0, 'colors': ['grey', 'charcoal'], 'brand': None, 'platform': 'depop'}, {'id': 'lst_015', 'title': 'Vintage Graphic Hoodie — Faded Black', 'description': 'Faded black pullover hoodie with barely-visible vintage graphic on the chest. Cozy interior. Some pilling but adds to the worn-in look.', 'category': 'tops', 'style_tags': ['vintage', 'grunge', 'graphic', 'streetwear'], 'size': 'L', 'condition': 'fair', 'price': 26.0, 'colors': ['black', 'charcoal'], 'brand': None, 'platform': 'depop'}, {'id': 'lst_017', 'title': 'Mesh Long-Sleeve Top — Black', 'description': 'Sheer black mesh long-sleeve. Great for layering under a graphic tee or over a bralette. Stretchy material, fits true to size.', 'category': 'tops', 'style_tags': ['y2k', 'grunge', 'goth', 'layering'], 'size': 'S/M', 'condition': 'excellent', 'price': 15.0, 'colors': ['black'], 'brand': None, 'platform': 'depop'}, {'id': 'lst_011', 'title': 'Low-Rise Cargo Pants — Khaki', 'description': 'Y2K era low-rise cargo pants. Lots of pockets. Khaki color, slightly distressed at the hems. Great for layering with a long tee.', 'category': 'bottoms', 'style_tags': ['y2k', 'cargo', '2000s', 'streetwear'], 'size': 'W29', 'condition':'fair', 'price': 27.0, 'colors': ['khaki', 'tan'], 'brand': None, 'platform': 'poshmark'}, {'id': 'lst_012', 'title': 'Oversized Crewneck Sweatshirt — Vintage Navy', 'description': 'Perfectly faded navy crewneck. Genuinely vintage — not manufactured distressed. Ribbed cuffs and hem. No graphics, clean.', 'category': 'tops', 'style_tags': ['vintage', 'basics', 'oversized', 'classic'], 'size': 'XL (fits oversized)', 'condition': 'good', 'price': 20.0, 'colors': ['navy'], 'brand': None, 'platform': 'thredUp'}]
 ```
-$ python -c "from tools import suggest_outfit; ..."
 
 ```
-python -c "from tools import suggest_outfit; from utils.data_loader import get_example_wardrobe, load_listings; print(suggest_outfit(load_listings()[0], get_example_wardrobe()))"
+$ python -c "from tools import suggest_outfit; from utils.data_loader import get_example_wardrobe, load_listings; print(suggest_outfit(load_listings()[0], get_example_wardrobe()))"
 
 **Outfit 1: Casual Streetwear**
 Pair the vintage Levi's 501s with the white ribbed tank top tucked in, layered under the black cropped zip hoodie. Finish with the chunky white sneakers and the black crossbody bag for an effortless, classic look that highlights the medium wash.
@@ -147,12 +144,13 @@ Pair the vintage Levi's 501s with the white ribbed tank top tucked in, layered u
 **Outfit 2: Cozy Grunge**
 Wear the vintage Levi's 501s with the oversized grey crewneck sweatshirt draped loosely over top. Add the black combat boots and the brown leather belt to contrast the grey and blue tones with some rugged texture.
 ```
-$ python -c "from tools import create_fit_card; ..."
 
 ```
-python -c "from tools import create_fit_card; from utils.data_loader import load_listings; print(create_fit_card('jeans and white sneakers', load_listings()[0]))"
+$ python -c "from tools import create_fit_card; from utils.data_loader import load_listings; print(create_fit_card('jeans and white sneakers', load_listings()[0]))"
 
 Scored these vintage Levi’s 501s on Depop for just $38 and they fit like an absolute dream. I’m styling them with crisp white sneakers for that effortlessly cool, casual streetwear vibe. So stoked on this wash! #VintageDenim #DepopFinds
+```
+
 ---
 
 ## How I Used AI
@@ -229,6 +227,8 @@ Criterion 1：Full three-tool run returns a fit card
       in:  outfit=548 chars, new_item='Y2K Baby Tee — Butterfly Print'
       out: Just scored this butterfly print baby tee on depop for $18 and I am obsessed with the pastel colorway...
   try 1: completed — fit card 312 chars
+
+```
 
 ```
 Criterion 2：Impossible query stops before the second tool
@@ -367,7 +367,7 @@ python app.py ask 'platform sneakers size 8'
 **Happy path**
 
 ```
- python app.py ask 'vintage graphic tee under $30' --trace PS C:\CodePath\AI 102\ai201-project2-fitfindr-2026>
+python app.py ask 'vintage graphic tee under $30' --trace
 [1] parse_query
       in:  vintage graphic tee under $30
       out: description='vintage graphic tee', size=None, max_price=30.0
@@ -380,7 +380,7 @@ python app.py ask 'platform sneakers size 8'
       →    best match first
 [4] suggest_outfit
       in:  new_item='Y2K Baby Tee — Butterfly Print', wardrobe=10 items
-      out: **Outfit 1: Y2K Streetwear** Pair the baby tee with your **Baggy straight-leg jeans, dark wash** fora classic…
+      out: **Outfit 1: Y2K Streetwear** Pair the baby tee with your **Baggy straight-leg jeans, dark wash** for a classic…
 [5] create_fit_card
       in:  outfit=573 chars, new_item='Y2K Baby Tee — Butterfly Print'
       out: Just scored this dreamy butterfly baby tee on depop for only eighteen bucks and I am obsessed with the pink an…
@@ -399,6 +399,23 @@ Tuck the tee into your **Wide-leg khaki trousers** to highlight the cropped fit 
 ```
 
 **Empty search**
+
+```
+python app.py ask 'designer ballgown size XXS under $5' --trace
+[1] parse_query
+      in:  designer ballgown size XXS under $5
+      out: description='designer ballgown', size='XXS', max_price=5.0
+[2] search_listings (via MCP)
+      in:  description='designer ballgown', size='XXS', max_price=5.0
+      out: [] (empty)
+      →    branch: empty, stopping before the model tools
+
+  No listings matched "designer ballgown" in size XXS under $5. Try: raise your price limit; try a different size or leave the size out; use fewer or broader words (e.g. 'tee' instead of 'designer graphic tee').
+
+0 model calls this session
+```
+
+**Size not parsed** (the bug from the diagnosis above: `size 8` is not read as a size, so the filter is dropped and the run continues)
 
 ```
 python app.py ask 'platform sneakers size 8' --trace
@@ -435,6 +452,8 @@ Style the sneakers with your **Wide-leg khaki trousers** and the **White ribbed 
 **On the MCP move:**
 ```
 I wrapped search_listings in mcp_server.py with @mcp.tool(), registered it with the same name and typed inputs as my Tool Inventory. In run_agent() I replaced search_listings(description, size, max_price) with call_tool("search_listings", {...}). The call shape changed but the return value did not — still a list[dict] with the same fields. python mcp_client.py confirmed the tool was listed. One full query ran end to end with no difference in output.
+
+Nothing behaved differently after the move: in both eval runs (before and after, 25 tries each), every try's trace shows `search_listings (via MCP)`, every matching query selected the same top item (lst_002, lst_004, lst_007, lst_019), and the empty-search branch still stopped before suggest_outfit 5 of 5 times, so the list[dict] coming back over MCP was handled exactly like the direct call's.
 ```
 
 
@@ -443,10 +462,6 @@ I wrapped search_listings in mcp_server.py with @mcp.tool(), registered it with 
 
 ## The Improvement
 
-<!-- What you changed, why your diagnosis pointed at it, and the after-run in
-     the same table format. One change, measured properly.
-
-     `python run_eval.py --label after` -->
 
 **What I changed:**
 I rewrote one prompt, _FIT_CARD_SYSTEM in tools.py, which is the system prompt for create_fit_card. I removed "not a product description" and the loose "Mention the item, its price…". In their place are two explicit rules: use the item's name exactly as written on the Item line, word for word, and write the price exactly as written on the Price line, in digits with the $ sign.
@@ -458,12 +473,35 @@ Criterion 4, "Fit card mentions the item's title and price," was MISSED at 0/5 i
 
 | Criterion | Target | Try 1 | Try 2 | Try 3 | Try 4 | Try 5 | Verdict |
 |---|---|---|---|---|---|---|---|
-
 | 1.Full three-tool run returns a fit card  | 4 of 5 | PASS |  PASS|  PASS|  PASS|  PASS| MET (5/5) |
 | 2. Impossible query stops before the second tool | 5 of 5 | PASS |  PASS|  PASS|  PASS|  PASS| MET (5/5) |
 | 3. selected_item id == suggest_outfit input id | 5 of 5 | PASS |  PASS|  PASS|  PASS|  PASS| MET (5/5) |
 | 4. Fit card mentions title and price |  5 of 5 | PASS |  FAIL|  PASS|  FAIL|  PASS| MISSED (3/5) |
 | 5.  Empty wardrobe still completes|  5 of 5 | PASS |  PASS|  PASS|  PASS|  PASS| MET (5/5) |
+
+**Real output**, pasted as text, naming the file and function that produced it:
+
+```
+Criterion 4：Fit card mentions title and price — PASS
+--From results/run_2026-10-11_0803_after.md, scenario fit card (query: denim jacket under $50), try 1, produced by create_fit_card (tools.py).
+--Output:
+[5] create_fit_card
+      in:  outfit=494 chars, new_item='Denim Jacket — Light Wash, Cropped'
+      out: I am obsessed with this vintage Denim Jacket — Light Wash, Cropped I just scored on poshmark! For $42.00, it's…
+Fit card:
+I am obsessed with this vintage Denim Jacket — Light Wash, Cropped I just scored on poshmark! For $42.00, it's the ultimate piece for nailing that effortless double denim streetwear vibe with chunky kicks. #ThriftFind #Streetwear
+```
+
+```
+Criterion 4：Fit card mentions title and price — FAIL
+--From results/run_2026-10-11_0803_after.md, scenario fit card (query: denim jacket under $50), try 2, produced by create_fit_card (tools.py).
+--Output:
+Fit card:
+Just scored this Wrangler on poshmark for only $42.00 and I am so obsessed with how it looks layered with baggy dark denim and chunky sneakers. It gives off the ultimate effortless streetwear energy. #thrifffind #streetwear
+```
+
+No MCP move in this change. This is a prompt-only change to _FIT_CARD_SYSTEM in tools.py.
+
 **Did it help, and how do I know:**
 
 The prompt rewrite helped but didn't meet the target: criterion 4 went from 0/5 to 3/5 because the model now copies the exact title most of the time, but in 2 of 5 tries it still used the brand "Wrangler" from the outfit text instead, so a prompt alone can't guarantee 5/5 without a check in code.
@@ -474,26 +512,26 @@ The prompt rewrite helped but didn't meet the target: criterion 4 went from 0/5 
 
 ## What's Still Broken
 
-<!-- For each criterion still missed: what you'd do, and why you stopped where
-     you did. "I ran out of time" is fine if it's true. Pretending nothing is
-     left is not. -->
 
+**Criterion 4: Fit card mentions the item's title and price (still MISSED, 3/5)**
+
+The prompt rewrite moved it from 0/5 to 3/5. The price now appears 5/5, but the title is still dropped in 2 of 5 tries. Both failures replace it with the brand: "this Wrangler" (try 2) and "this Wrangler jacket" (try 4). The brand comes from the outfit text that `create_fit_card` receives: `suggest_outfit` calls the item "your Wrangler jacket" every time, so the model sees two names for it and sometimes picks the casual one. The temperature is 0.9, and the prompt still asks for a casual voice that conflicts with a product-style title. That means a prompt alone raises the rate but can't guarantee it.
+
+**What I'd do next:** check the output in code instead of relying on the prompt. After `generate()` returns, `create_fit_card` would check that the card contains the exact title (after normalizing case, dashes, and whitespace) and the price. If either is missing, it retries once with a hint naming what was left out. If the retry also fails, it appends `(title, $price on platform)` to the card so it never returns without them. That turns 5/5 from "likely" into something the code enforces. I'd also format the price as `$42` instead of `$42.00` so the prompt and the check use the same string.
+
+**Why I stopped here:** the unit asks for one change, measured properly. The prompt rewrite was that change, and it went straight at the cause I diagnosed. Adding the check in the same run would have mixed two fixes, and I couldn't have said which one moved the number. The 3/5 shows how far the prompt alone gets, and the two failures point to the next fix.
+
+## How I Used AI
+**Moment 1**
+
+What I asked for: I asked AI to review the _FIT_CARD_SYSTEM prompt in tools.py for create_fit_card and tighten the wording so the model stops paraphrasing item names and prices.
+
+What came back: It suggested removing "not a product description" and the vague "Mention the item, its price…" line, and replacing them with two explicit rules: copy the item name word for word from the Item line, and copy the price in digits with the $ sign exactly as written on the Price line. It also flagged that the loose phrasing was probably why the model kept softening/rephrasing values.
+
+What I changed: I rewrote _FIT_CARD_SYSTEM with those two rules in place of the old lines. This was a prompt-only change — no MCP move.
 
 
 <!-- ═════════════════════════════════════════════════════════════════════
-
-     SUBMISSION CHECKLIST — unit 3
-
-       [ ] criteria.md has five numbered criteria, each with a target
-       [ ] Each criterion has a reason underneath it
-       [ ] All five unit 3 sections above have real content
-       [ ] Tool Inventory: all three tools, inputs WITH TYPES, a specific
-           return value, and the empty case
-       [ ] Planning Loop names the branch rule and agent.py::run_agent
-       [ ] Sample Run: one full query plus the three per-tool tests, as text
-       [ ] At least four new commits
-       [ ] Repository URL submitted — WRITE IT DOWN, you submit the same one
-           next unit
 
      SUBMISSION CHECKLIST — unit 4
 
