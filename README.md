@@ -215,7 +215,7 @@ Scored these vintage Levi’s 501s on Depop for just $38 and they fit like an ab
 | 1.Full three-tool run returns a fit card  | 4 of 5 | PASS |  PASS|  PASS|  PASS|  PASS| MET (5/5) |
 | 2. Impossible query stops before the second tool | 5 of 5 | PASS |  PASS|  PASS|  PASS|  PASS| MET (5/5) |
 | 3. selected_item id == suggest_outfit input id | 5 of 5 | PASS |  PASS|  PASS|  PASS|  PASS| MET (5/5) |
-| 4. Fit card mentions title and price |  5 of 5 | PASS |  PASS|  PASS|  PASS|  PASS| MET (5/5) |
+| 4. Fit card mentions title and price |  5 of 5 | FAIL |  FAIL|  FAIL|  FAIL|  FAIL| MISSED (0/5) |
 | 5.  Empty wardrobe still completes|  5 of 5 | PASS |  PASS|  PASS|  PASS|  PASS| MET (5/5) |
 
 **Real output from one try**, pasted as text, naming the file and function
@@ -255,11 +255,14 @@ From results/run_2026-10-10_2308_before.md, scenario state check, produced by tr
 ```
 ```
 Criterion 4：Fit card mentions title and price
---From results/run_2026-10-10_2308_before.md, scenario fit card, produced by create_fit_card (tools.py).
+--From results/run_2026-10-10_2308_before.md, scenario fit card (query: denim jacket under $50), try 1, produced by create_fit_card (tools.py).
 --Output:
+fit card  (example wardrobe)
+  query: denim jacket under $50
 [5] create_fit_card
-      in:  outfit=539 chars, new_item='Y2K Baby Tee — Butterfly Print'
-      out: Just scored this pastel butterfly baby tee on Depop for only eighteen bucks and I am obsessed. It’s giving tot…
+      in:  outfit=546 chars, new_item='Denim Jacket — Light Wash, Cropped'
+      out: Score this vintage Wrangler cropped denim jacket for just $42 on poshmark and honestly, I'm obsessed...
+  try 1: completed — fit card 329 chars
 
 ```
 ```
@@ -275,32 +278,53 @@ From results/run_2026-10-10_2308_before.md, scenario empty wardrobe, produced by
 
 ## Verdicts and Diagnoses
 
-<!-- MET or MISSED per criterion against LAST UNIT's target, plus a sentence on
-     how you decided.
 
-     Then, for every miss: which of the four places it happened — a tool, the
-     loop's branch, the session, or the model's output — AND the mechanism.
-
-     Not a diagnosis:  "The fit card was bad."
-     A diagnosis:      "The fit card criterion missed on 2 of 5 items. Both had
-                        an empty brand field. My prompt puts the brand in the
-                        first sentence, so the card opened with a blank and read
-                        like a fragment. The tool worked; the prompt assumed a
-                        field that isn't always there."
-
-     Look for a pattern. Three misses on the same tool is one problem, not
-     three. -->
 
 | # | Criterion | Target | Verdict | How I decided |
 |---|---|---|---|---|
-| 1 |  |  |  |  |
-| 2 |  |  |  |  |
-| 3 |  |  |  |  |
-| 4 |  |  |  |  |
-| 5 |  |  |  |  |
+| 1 | A matching query completes all three tools | 4 of 5 | MET (5/5) | All 5 tries of `vintage graphic tee under $30` show `stopped early: no` and a non-empty fit card in `results/run_2026-10-10_2308_before.md`. |
+| 2 | An impossible query stops before the second tool | 5 of 5 | MET (5/5) | All 5 tries of `designer ballgown size XXS under $5` show `search_results: 0`, the `branch: empty` trace line, no `suggest_outfit` step, and an error naming the search, both filters, and what to change. |
+| 3 | `selected_item` id == `suggest_outfit` input id | 5 of 5 | MET (5/5), but the check is weak | In all 5 tries the `select_item` line and the `suggest_outfit` line both show `id=lst_004`. But both lines print `session['selected_item']['id']`, so the trace compares the value to itself. It could not have failed (see diagnosis below). |
+| 4 | Fit card mentions the item's title and price | 5 of 5 | **MISSED (0/5)** | I checked each card from the `fit card` scenario for the literal title `Denim Jacket — Light Wash, Cropped` and the price `$42`. The price appears 5/5; the title appears 0/5 (every card paraphrases it as "vintage Wrangler cropped denim jacket"). Both are required, so every try fails. |
+| 5 | Empty wardrobe still completes | 5 of 5 | MET (5/5) | All 5 tries of `platform sneakers size US 8` with an empty wardrobe show `wardrobe=0 items`, an outfit that opens by saying the closet is empty, and a fit card. |
 
 **Diagnoses**
----
+
+**Criterion 4: the fit card misses the title (MISSED 0/5)**
+
+- **Step:** `[5] create_fit_card`, the last step in `run_agent` (agent.py), which calls `create_fit_card` in tools.py.
+- **Place:** the model's output.
+- **Mechanism:** `create_fit_card` sends the model the exact title (`- Item: Denim Jacket — Light Wash, Cropped`) and price (`- Price: $42.00`). But `_FIT_CARD_SYSTEM` tells it to *"write… like a real post, not a product description"* and only to *"Mention the item"*. A listing title is product-description text, so following the first instruction means rewriting it. All 5 cards turn it into casual words ("vintage Wrangler cropped denim jacket"), pulling "Wrangler" from the description rather than the title. Nothing in the prompt says to use the item's name as written, so the model never does. The price survives only because "$42" already reads like something a person would post. The same prompt let 2 of 5 `happy path` cards write "eighteen bucks" instead of `$18`, so the price is exposed to the same pressure.
+
+**Why it isn't the other three places:**
+
+- **Not the session:** the right item reached the step. The trace shows `select_item … id=lst_007` and then `create_fit_card in: new_item='Denim Jacket — Light Wash, Cropped'` in all 5 tries.
+- **Not the loop's branch:** there is no decision at this step. The run completed all 5 tries (`stopped early: no`) and the branch never fired.
+- **Not the tool's code:** `create_fit_card` puts both the title and the price into the prompt, and the price in every card is correct (`$42`), which shows the item's data arrived. The tool also returned a non-empty card every time, so the empty-response fallback never ran.
+
+**Fix this points to:** change the prompt in `_FIT_CARD_SYSTEM`, not the loop. Tell the model: *"Use the item's name exactly as given in the Item line, once"* and *"write the price in digits exactly as given, e.g. $42"*. Also pass the price as `${price:g}` (`$42`) instead of `$42.00`.
+
+*Note on scoring:* "mentions the title" was loose enough that a paraphrase could be argued either way. I scored it as a literal match, because that's the only reading I can check the same way every time.
+
+**Criterion 3: met, but the measurement can't fail (place: the session/trace).**
+The `suggest_outfit` trace line in `run_agent` builds its `id=` from `session['selected_item']`, the same field the `select_item` line reads. So the trace proves the session field was set, not what `suggest_outfit` actually received. A bug that passed `results[1]` to the tool would still show matching ids. To make it real, the id has to be recorded inside `suggest_outfit` from its own `new_item` argument.
+
+**A failure outside the run log: non-empty results that are the wrong item (place: the loop's branch + a tool's return shape).**
+I fed probe queries through `parse_query` and `search_listings` with no model calls:
+
+```
+'vintage ballgown'        -> 10 results, top: Vintage Levi's 501 Jeans — Medium Wash
+'platform sneakers size 8'-> size=None (description='platform sneakers size 8')
+'leather boots size 7.5'  -> size=None, top: Platform Mary Janes — Black Patent (US 7)
+'black dress size medium' -> size=None, top: Platform Mary Janes — Black Patent (US 7)
+```
+
+There are two mechanisms. (1) `search_listings` keeps any listing with `score > 0`, so one shared word ("vintage") is enough. It returns no information about which words matched. My branch only tests `if not results`, so a list with one weak match goes straight to `suggest_outfit`, and the agent styles jeans as a ballgown. (2) The `_SIZE` regex in `parse_query` only reads letter sizes, `W30 L30`, and `US 8`. A bare `size 8` or `size medium` isn't parsed: the size filter is silently dropped and "size 8" becomes search keywords. My Criterion 5 scenario uses `size US 8` precisely to get around this, which is why Criterion 5 didn't catch it.
+
+**Pattern:** every problem above is the same mistake. The agent treats "something came back" as "the right thing came back". That covers the search returning a weak match, the parser returning `size=None`, the model returning a card that names *an* item, and the trace showing *an* id. None of these steps checks its output against what the user actually asked for.
+
+**Failure modes, triggered and handled**
+
 ** Empty search **
 ```
 python app.py ask 'designer ballgown size XXS under $5'
